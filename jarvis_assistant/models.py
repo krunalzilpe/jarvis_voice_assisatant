@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -30,6 +30,7 @@ class IntentType(str, Enum):
     SWITCH_WINDOW = "switch_window"
     CHAT = "chat"
     IMAGE_GENERATION = "image_generation"
+    CANCEL = "cancel"
     PAUSE_ASSISTANT = "pause_assistant"
     RESUME_ASSISTANT = "resume_assistant"
     STOP_ASSISTANT = "stop_assistant"
@@ -42,7 +43,7 @@ class PendingFollowUp:
     question: str
     intent_type: IntentType
     payload: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
@@ -80,4 +81,4 @@ class CommandRecord:
     success: bool
     follow_up_kind: str | None
     error: str | None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

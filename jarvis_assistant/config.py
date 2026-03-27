@@ -50,7 +50,7 @@ class AppSettings:
     ai_model: str = "gpt-4.1-mini"
     image_model: str = "gpt-image-1"
     openai_api_key: str = ""
-    openai_base_url: str = ""
+    openai_base_url: str = "https://api.openai.com/v1"
     default_search_engine: str = "google"
     permissions: PermissionSettings = field(default_factory=PermissionSettings)
 
@@ -78,7 +78,7 @@ def load_settings() -> AppSettings:
     if not settings.openai_api_key:
         settings.openai_api_key = os.getenv("OPENAI_API_KEY", "")
     if not settings.openai_base_url:
-        settings.openai_base_url = os.getenv("OPENAI_BASE_URL", "")
+        settings.openai_base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
     return settings
 
 

@@ -11,3 +11,6 @@ pystray~=0.19.5
 python-dotenv~=1.0.1
 openai~=1.79.0
 yt-dlp~=2025.3.31
+setuptools>=75
+sounddevice>=0.5,<1
+numpy>=2,<3

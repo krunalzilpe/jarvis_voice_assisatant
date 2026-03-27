@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import closing
 import json
 import sqlite3
 from pathlib import Path
@@ -18,7 +19,7 @@ class HistoryStore:
         return connection
 
     def _initialize(self) -> None:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS command_history (
@@ -34,9 +35,10 @@ class HistoryStore:
                 )
                 """
             )
+            connection.commit()
 
     def record(self, record: CommandRecord) -> None:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             connection.execute(
                 """
                 INSERT INTO command_history (
@@ -61,9 +63,10 @@ class HistoryStore:
                     record.created_at.isoformat(),
                 ),
             )
+            connection.commit()
 
     def recent(self, limit: int = 50) -> list[dict]:
-        with self._connect() as connection:
+        with closing(self._connect()) as connection:
             rows = connection.execute(
                 """
                 SELECT raw_command, interpreted_intent, target, executed_steps, success, follow_up_kind, error, created_at

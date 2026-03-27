@@ -73,7 +73,7 @@ class IntentParser:
             return Intent(IntentType.POWER, raw_text=text, confidence=0.95, value="lock")
 
         if any(phrase in normalized for phrase in ("generate image", "image generate", "image banao", "image create")):
-            prompt = self._extract_after_keywords(normalized, ["generate image", "image generate", "image banao", "image create karo"])
+            prompt = self._extract_image_prompt(normalized)
             if prompt:
                 return Intent(IntentType.IMAGE_GENERATION, raw_text=text, confidence=0.9, value=prompt)
             return Intent(
@@ -192,6 +192,16 @@ class IntentParser:
             return Intent(IntentType.OPEN_FOLDER, raw_text=text, confidence=0.9, target=FOLDER_ALIASES.get(normalized, text))
         if pending.kind == "generic_typing":
             return Intent(IntentType.TYPE_TEXT, raw_text=text, confidence=0.95, value=text)
+        if pending.kind == "power_confirmation":
+            if any(word in normalized for word in ("haan", "yes", "confirm", "kar do", "continue", "proceed")):
+                return Intent(
+                    IntentType.POWER,
+                    raw_text=text,
+                    confidence=0.95,
+                    value=pending.payload.get("action", "shutdown"),
+                    parameters={"confirmed": True},
+                )
+            return Intent(IntentType.CANCEL, raw_text=text, confidence=0.92, value=pending.payload.get("action", "power action"))
         return self.parse(text, context)
 
     def _extract_app_target(self, text: str) -> str | None:
@@ -233,6 +243,23 @@ class IntentParser:
                 tail = text.split(keyword, 1)[1].strip(" :,-")
                 if tail:
                     return tail
+        return None
+
+    def _extract_image_prompt(self, text: str) -> str | None:
+        patterns = [
+            r"(?P<prompt>.+?) ka image generate karo",
+            r"(?P<prompt>.+?) ka image banao",
+            r"generate image (?P<prompt>.+)",
+            r"image generate (?P<prompt>.+)",
+            r"image banao (?P<prompt>.+)",
+            r"image create karo (?P<prompt>.+)",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text)
+            if match:
+                prompt = match.group("prompt").strip(" ,.-")
+                if prompt:
+                    return prompt
         return None
 
     def _detect_mixed(self, text: str) -> Intent | None:

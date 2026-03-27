@@ -46,6 +46,9 @@ class JarvisDesktopApp:
         self.last_action_var = tk.StringVar(value="-")
         self.active_window_var = tk.StringVar(value="-")
         self.agent_status_var = tk.StringVar(value="stopped")
+        self.voice_ready_var = tk.StringVar(value="checking")
+        self.api_ready_var = tk.StringVar(value="not configured")
+        self.setup_summary_var = tk.StringVar(value="Loading setup state...")
 
         self.assistant_name_var = tk.StringVar(value=settings.assistant_name)
         self.wake_phrase_var = tk.StringVar(value=settings.wake_phrase)
@@ -63,6 +66,9 @@ class JarvisDesktopApp:
         self.always_listen_var = tk.BooleanVar(value=settings.always_listen)
         self.chat_input_var = tk.StringVar()
         self.image_prompt_var = tk.StringVar()
+        self.microphone_names = self.brain.voice.available_microphones()
+        if settings.microphone_name and settings.microphone_name not in self.microphone_names:
+            self.microphone_names.append(settings.microphone_name)
 
         self.permission_vars = {
             "app_control": tk.BooleanVar(value=settings.permissions.app_control),
@@ -80,11 +86,12 @@ class JarvisDesktopApp:
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _build_layout(self) -> None:
-        self.root.configure(bg="#e6ece8")
-        header = tk.Frame(self.root, bg="#16302b", padx=20, pady=18)
+        # main container
+        self.root.configure(bg="#0f172a")
+        header = tk.Frame(self.root, bg="#0b1220", padx=20, pady=18)
         header.pack(fill="x")
-        tk.Label(header, text=f"{self.settings.assistant_name} Control Center", font=("Segoe UI Semibold", 22), fg="white", bg="#16302b").pack(side="left")
-        tk.Label(header, text="Windows desktop AI assistant", font=("Segoe UI", 11), fg="#d6e6dd", bg="#16302b").pack(side="left", padx=18, pady=(8, 0))
+        tk.Label(header, text=f"{self.settings.assistant_name} Control Center", font=("Segoe UI Semibold", 22), fg="#fbbf24", bg="#0b1220").pack(side="left")
+        tk.Label(header, text="Windows desktop AI assistant", font=("Segoe UI", 11), fg="#cbd5f5", bg="#0b1220").pack(side="left", padx=18, pady=(8, 0))
 
         notebook = ttk.Notebook(self.root)
         notebook.pack(fill="both", expand=True, padx=14, pady=14)
@@ -102,18 +109,79 @@ class JarvisDesktopApp:
         self._build_image_tab(tabs["Image Generation"])
 
     def _build_home_tab(self, frame: ttk.Frame) -> None:
-        cards = ttk.Frame(frame, padding=16)
-        cards.pack(fill="both", expand=True)
+        outer = ttk.Frame(frame, padding=16)
+        outer.pack(fill="both", expand=True)
+
+        hero = tk.Frame(outer, bg="#111827", padx=24, pady=22, highlightthickness=1, highlightbackground="#243244")
+        hero.pack(fill="x", pady=(0, 14))
+        tk.Label(
+            hero,
+            text=f"{self.settings.assistant_name} Desktop Operator",
+            font=("Segoe UI Semibold", 24),
+            fg="#f8fafc",
+            bg="#111827",
+        ).grid(row=0, column=0, sticky="w")
+        tk.Label(
+            hero,
+            text="Voice control, AI chat, and end-to-end Windows task execution from one console.",
+            font=("Segoe UI", 11),
+            fg="#cbd5e1",
+            bg="#111827",
+        ).grid(row=1, column=0, sticky="w", pady=(8, 0))
+        status_chip = tk.Label(
+            hero,
+            textvariable=self.status_var,
+            font=("Segoe UI Semibold", 12),
+            fg="#0f172a",
+            bg="#fbbf24",
+            padx=14,
+            pady=6,
+        )
+        status_chip.grid(row=0, column=1, rowspan=2, sticky="e")
+        hero.columnconfigure(0, weight=1)
+
+        quick = ttk.LabelFrame(outer, text="Quick Actions", padding=14, style="Card.TLabelframe")
+        quick.pack(fill="x", pady=(0, 14))
+        quick_actions = [
+            ("Start Voice", self._start_agent),
+            ("Test Mic", self._test_microphone),
+            ("Open Notepad", lambda: self._run_command("notepad kholo")),
+            ("Google Search", lambda: self._run_command("google pe python automation search karo")),
+            ("Play YouTube", lambda: self._run_command("youtube pe believer song baja")),
+            ("Take Screenshot", lambda: self._run_command("screenshot lo")),
+        ]
+        for index, (label, command) in enumerate(quick_actions):
+            ttk.Button(quick, text=label, command=command).grid(row=index // 3, column=index % 3, sticky="ew", padx=8, pady=8)
+        for column in range(3):
+            quick.columnconfigure(column, weight=1)
+
+        body = ttk.Frame(outer)
+        body.pack(fill="both", expand=True)
+        left = ttk.Frame(body)
+        left.pack(side="left", fill="both", expand=True)
+        right = ttk.Frame(body)
+        right.pack(side="left", fill="both", expand=True, padx=(14, 0))
+
         for label, variable in (
-            ("Status", self.status_var),
             ("Last Command", self.last_command_var),
             ("Last Action", self.last_action_var),
             ("Active Window", self.active_window_var),
             ("Background Agent", self.agent_status_var),
         ):
-            card = ttk.LabelFrame(cards, text=label, padding=14)
+            card = ttk.LabelFrame(left, text=label, padding=14, style="Card.TLabelframe")
             card.pack(fill="x", pady=8)
             ttk.Label(card, textvariable=variable, font=("Segoe UI", 12)).pack(anchor="w")
+
+        setup = ttk.LabelFrame(right, text="Readiness", padding=14, style="Card.TLabelframe")
+        setup.pack(fill="x", pady=8)
+        ttk.Label(setup, text="Voice", font=("Segoe UI Semibold", 11)).grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(setup, textvariable=self.voice_ready_var, font=("Segoe UI", 11)).grid(row=0, column=1, sticky="w", pady=4, padx=(18, 0))
+        ttk.Label(setup, text="OpenAI", font=("Segoe UI Semibold", 11)).grid(row=1, column=0, sticky="w", pady=4)
+        ttk.Label(setup, textvariable=self.api_ready_var, font=("Segoe UI", 11)).grid(row=1, column=1, sticky="w", pady=4, padx=(18, 0))
+
+        checklist = ttk.LabelFrame(right, text="Setup Notes", padding=14, style="Card.TLabelframe")
+        checklist.pack(fill="both", expand=True, pady=8)
+        ttk.Label(checklist, textvariable=self.setup_summary_var, wraplength=360, justify="left", font=("Segoe UI", 10)).pack(anchor="w")
 
     def _build_configuration_tab(self, frame: ttk.Frame) -> None:
         form = ttk.Frame(frame, padding=16)
@@ -123,16 +191,25 @@ class JarvisDesktopApp:
             ("Image model", self.image_model_var),
             ("OpenAI API key", self.openai_key_var),
             ("Base URL", self.base_url_var),
-            ("Microphone", self.microphone_var),
             ("Speaker", self.speaker_var),
         ]
         for index, (label, variable) in enumerate(rows):
             ttk.Label(form, text=label).grid(row=index, column=0, sticky="w", pady=8, padx=8)
             ttk.Entry(form, textvariable=variable, width=64, show="*" if "key" in label.lower() else "").grid(row=index, column=1, sticky="ew", pady=8, padx=8)
+        ttk.Label(form, text="Microphone").grid(row=5, column=0, sticky="w", pady=8, padx=8)
+        microphone_values = self.microphone_names if self.microphone_names else [self.microphone_var.get() or "Default system microphone"]
+        microphone_box = ttk.Combobox(form, textvariable=self.microphone_var, values=microphone_values, state="normal")
+        microphone_box.grid(row=5, column=1, sticky="ew", pady=8, padx=8)
         ttk.Checkbutton(form, text="Start voice agent on launch", variable=self.voice_on_start_var).grid(row=6, column=0, columnspan=2, sticky="w", padx=8, pady=6)
         ttk.Checkbutton(form, text="Minimize to tray", variable=self.tray_var).grid(row=7, column=0, columnspan=2, sticky="w", padx=8, pady=6)
         ttk.Checkbutton(form, text="Always listen (without wake phrase)", variable=self.always_listen_var).grid(row=8, column=0, columnspan=2, sticky="w", padx=8, pady=6)
         ttk.Button(form, text="Save Configuration", command=self._save_settings).grid(row=9, column=0, pady=18, padx=8, sticky="w")
+        ttk.Label(
+            form,
+            text="Tip: choose the exact microphone used for wake-word commands to reduce missed recognition.",
+            wraplength=560,
+            justify="left",
+        ).grid(row=10, column=0, columnspan=2, sticky="w", padx=8, pady=(6, 0))
         form.columnconfigure(1, weight=1)
 
     def _build_customization_tab(self, frame: ttk.Frame) -> None:
@@ -189,7 +266,17 @@ class JarvisDesktopApp:
     def _build_chat_tab(self, frame: ttk.Frame) -> None:
         outer = ttk.Frame(frame, padding=16)
         outer.pack(fill="both", expand=True)
-        self.chat_log = tk.Text(outer, wrap="word", font=("Consolas", 11), bg="#fcfcfa", height=20)
+        self.chat_log = tk.Text(
+            outer,
+            wrap="word",
+            font=("Consolas", 11),
+            bg="#0b1220",
+            fg="#e5e7eb",
+            insertbackground="#fbbf24",
+            height=20,
+            highlightthickness=1,
+            highlightbackground="#1f2937",
+        )
         self.chat_log.pack(fill="both", expand=True, pady=(0, 10))
         self.chat_log.configure(state="disabled")
 
@@ -215,10 +302,10 @@ class JarvisDesktopApp:
         ttk.Button(top, text="Generate", command=self._generate_image).pack(side="left")
         content = ttk.Frame(outer)
         content.pack(fill="both", expand=True, pady=16)
-        self.image_history = tk.Listbox(content)
+        self.image_history = tk.Listbox(content, bg="#0b1220", fg="#e5e7eb", highlightbackground="#1f2937", selectbackground="#334155")
         self.image_history.pack(side="left", fill="y")
         self.image_history.bind("<<ListboxSelect>>", self._show_selected_image)
-        self.image_preview = ttk.Label(content, text="Generated image preview")
+        self.image_preview = ttk.Label(content, text="Generated image preview", background="#0f172a", foreground="#e5e7eb")
         self.image_preview.pack(side="left", fill="both", expand=True, padx=16)
         self._load_image_history()
 
@@ -281,6 +368,9 @@ class JarvisDesktopApp:
         self.last_action_var.set(state.last_action or "-")
         self.active_window_var.set(state.active_window or state.active_app or "-")
         self.agent_status_var.set("running" if state.background_agent_running else "stopped")
+        self.voice_ready_var.set(self._voice_readiness_label())
+        self.api_ready_var.set("configured" if self.settings.openai_api_key else "not configured")
+        self.setup_summary_var.set(self._setup_summary())
 
     def _refresh_history(self) -> None:
         for row in self.history_table.get_children():
@@ -289,9 +379,13 @@ class JarvisDesktopApp:
             self.history_table.insert("", "end", values=(item["created_at"].replace("T", " ")[:19], item["interpreted_intent"], "yes" if item["success"] else "no", item["target"] or "-"))
 
     def _start_agent(self) -> None:
-        self.brain.start_background_agent()
+        started = self.brain.start_background_agent()
         self._refresh_runtime_labels()
-        self._append_chat(self.settings.assistant_name, "Background assistant start kar diya.")
+        if started:
+            self._append_chat(self.settings.assistant_name, "Background assistant start kar diya.")
+        else:
+            detail = self.brain.voice.last_error_message() or "Voice backend available nahi hai."
+            self._append_chat(self.settings.assistant_name, f"Voice agent start nahi ho paya: {detail}")
 
     def _stop_agent(self) -> None:
         self.brain.stop_background_agent()
@@ -299,8 +393,23 @@ class JarvisDesktopApp:
         self._append_chat(self.settings.assistant_name, "Background assistant stop kar diya.")
 
     def _test_microphone(self) -> None:
-        heard = self.brain.voice.listen_once(timeout=3, phrase_time_limit=5)
-        self._append_chat("Mic", heard if heard else "No voice input captured.")
+        self._append_chat("Mic", "Listening for a short sample...")
+
+        def runner() -> None:
+            heard = self.brain.voice.listen_once(timeout=3, phrase_time_limit=5)
+            diagnostics = self.brain.voice.diagnostics()
+            if heard:
+                message = heard
+            else:
+                detail = diagnostics.get("last_error")
+                backend = diagnostics.get("backend")
+                if detail:
+                    message = f"No voice input captured. Backend: {backend}. Detail: {detail}"
+                else:
+                    message = f"No voice input captured. Backend: {backend}. Check microphone selection and Windows microphone privacy."
+            self.root.after(0, lambda: self._append_chat("Mic", message))
+
+        threading.Thread(target=runner, daemon=True).start()
 
     def _generate_image(self) -> None:
         prompt = self.image_prompt_var.get().strip()
@@ -435,6 +544,19 @@ class JarvisDesktopApp:
             bordercolor="#1f2937",
         )
         style.configure(
+            "TCombobox",
+            fieldbackground="#0b1220",
+            foreground="#e5e7eb",
+            bordercolor="#1f2937",
+            arrowsize=16,
+        )
+        style.configure(
+            "TCheckbutton",
+            background="#0f172a",
+            foreground="#e5e7eb",
+            font=("Segoe UI", 10),
+        )
+        style.configure(
             "Treeview",
             background="#0b1220",
             fieldbackground="#0b1220",
@@ -449,3 +571,28 @@ class JarvisDesktopApp:
             font=("Segoe UI Semibold", 10),
         )
         style.map("Treeview", background=[("selected", "#334155")])
+
+    def _voice_readiness_label(self) -> str:
+        diagnostics = self.brain.voice.diagnostics()
+        if diagnostics["microphone_count"]:
+            if self.settings.microphone_name:
+                return f"ready ({self.settings.microphone_name})"
+            return "ready (default microphone)"
+        return "microphone not detected"
+
+    def _setup_summary(self) -> str:
+        diagnostics = self.brain.voice.diagnostics()
+        lines = [
+            f"Voice agent: {'running' if self.brain.context_manager.state.background_agent_running else 'stopped'}",
+            f"Wake phrase: {self.settings.wake_phrase or 'not set'}",
+            f"Microphone: {self.settings.microphone_name or 'system default'}",
+            f"Voice backend: {diagnostics['backend']}",
+            f"OpenAI image/chat: {'enabled' if self.settings.openai_api_key else 'disabled'}",
+        ]
+        if not self.settings.openai_api_key:
+            lines.append("Add OPENAI_API_KEY in Configuration for AI chat and image generation.")
+        if not diagnostics["microphone_count"]:
+            lines.append("No microphone was detected by SpeechRecognition on this machine.")
+        if diagnostics["last_error"]:
+            lines.append(f"Last voice error: {diagnostics['last_error']}")
+        return "\n".join(lines)

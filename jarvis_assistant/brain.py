@@ -8,7 +8,7 @@ from .config import AppSettings, DB_PATH
 from .context_manager import ContextManager
 from .image_generation import ImageGenerationService
 from .llm import LLMService
-from .models import ActionResult, AssistantStatus, IntentType
+from .models import ActionResult, AssistantStatus, IntentType, PendingFollowUp
 from .nlu import IntentParser
 from .storage import HistoryStore
 from .voice import VoicePipeline
@@ -35,9 +35,10 @@ class AssistantBrain:
         if self.settings.startup_launch_voice:
             self.start_background_agent()
 
-    def start_background_agent(self) -> None:
-        self.voice.start_background_listening(lambda text: self.handle_input(text, source="voice"))
-        self.context_manager.set_background_running(True)
+    def start_background_agent(self) -> bool:
+        started = self.voice.start_background_listening(lambda text: self.handle_input(text, source="voice"))
+        self.context_manager.set_background_running(started)
+        return started
 
     def stop_background_agent(self) -> None:
         self.voice.stop_background_listening()
@@ -92,6 +93,8 @@ class AssistantBrain:
                 action_result = self.automation.google_search(intent.value or "")
                 if reply_prefix:
                     action_result.reply = f"{reply_prefix}\n\n{action_result.reply}"
+                elif intent.parameters.get("explain_first") and self.llm_service.last_error():
+                    action_result.reply = f"AI explanation unavailable: {self.llm_service.last_error()}\n\n{action_result.reply}"
                 return action_result
             case IntentType.YOUTUBE_PLAY:
                 if intent.follow_up:
@@ -108,13 +111,35 @@ class AssistantBrain:
                 action_result = self.automation.type_text(intent.value or "")
                 if reply_prefix:
                     action_result.reply = f"{reply_prefix}\n\n{action_result.reply}"
+                elif intent.parameters.get("explain_first") and self.llm_service.last_error():
+                    action_result.reply = f"AI explanation unavailable: {self.llm_service.last_error()}\n\n{action_result.reply}"
                 return action_result
             case IntentType.SCREENSHOT:
                 return self.automation.take_screenshot()
             case IntentType.VOLUME:
                 return self.automation.adjust_volume(intent.value or "mute")
             case IntentType.POWER:
-                return self.automation.power_action(intent.value or "shutdown")
+                action = intent.value or "shutdown"
+                if self.settings.permissions.dangerous_action_confirmation and not intent.parameters.get("confirmed"):
+                    question = f"{action.title()} confirm karna hai? Haan bolo to main continue karunga."
+                    self.context_manager.set_follow_up(
+                        PendingFollowUp(
+                            kind="power_confirmation",
+                            question=question,
+                            intent_type=IntentType.POWER,
+                            payload={"action": action},
+                        )
+                    )
+                    return ActionResult(
+                        True,
+                        question,
+                        intent.intent_type.value,
+                        "request_follow_up",
+                        requires_follow_up=True,
+                        follow_up_question=question,
+                        target=action,
+                    )
+                return self.automation.power_action(action)
             case IntentType.OPEN_WEBSITE:
                 return self.automation.open_website(intent.value or "")
             case IntentType.SWITCH_WINDOW:
@@ -132,10 +157,16 @@ class AssistantBrain:
             case IntentType.STOP_ASSISTANT:
                 self.stop_background_agent()
                 return ActionResult(True, "Assistant stop kar diya.", intent.intent_type.value, "stop_assistant")
+            case IntentType.CANCEL:
+                target = intent.value or "requested action"
+                return ActionResult(True, f"{target} cancel kar diya.", intent.intent_type.value, "cancel_action", target=target)
             case IntentType.CHAT:
+                if not self.llm_service.is_configured():
+                    return ActionResult(False, "AI chat ke liye valid OPENAI_API_KEY aur active billing/credits configure karo.", intent.intent_type.value, "chat_unavailable")
                 reply = self.llm_service.chat_reply(intent.raw_text, self.context_manager.state.conversation_context, self.settings.assistant_name)
                 if reply:
                     return ActionResult(True, reply, intent.intent_type.value, "chat_reply")
-                return ActionResult(True, "Command samajh gaya, lekin uske liye specific action configure nahi hai. Aap aur specific bol sakte hain.", intent.intent_type.value, "chat_fallback")
+                detail = self.llm_service.last_error() or "AI reply unavailable."
+                return ActionResult(False, f"AI reply generate nahi ho paya: {detail}", intent.intent_type.value, "chat_error", error=detail)
             case _:
                 return ActionResult(False, "Ye command abhi samajh nahi aaya.", IntentType.UNKNOWN.value, "unknown")

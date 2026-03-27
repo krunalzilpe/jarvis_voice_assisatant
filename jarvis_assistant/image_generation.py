@@ -34,5 +34,12 @@ class ImageGenerationService:
             saved_path = self.automation.save_generated_image(image_bytes, filename)
             return ActionResult(True, f"Image generate karke save kar diya: {saved_path}", "image_generation", "generate_image", steps=["Submitted prompt to image model.", "Saved generated image locally."], target=saved_path, payload={"path": saved_path, "prompt": prompt})
         except Exception as exc:  # pragma: no cover
-            self.logger.exception("Image generation failed")
-            return ActionResult(False, "Image generation fail ho gaya.", "image_generation", "generate_image", error=str(exc))
+            detail = self._format_exception(exc)
+            self.logger.warning("Image generation failed: %s", detail)
+            return ActionResult(False, f"Image generation fail ho gaya: {detail}", "image_generation", "generate_image", error=detail)
+
+    def _format_exception(self, exc: Exception) -> str:
+        message = str(exc).strip()
+        if message:
+            return message
+        return exc.__class__.__name__

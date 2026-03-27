@@ -15,6 +15,7 @@ class LLMService:
     def __init__(self, settings: AppSettings) -> None:
         self.settings = settings
         self.logger = logging.getLogger(__name__)
+        self._last_error: str | None = None
 
     def is_configured(self) -> bool:
         return bool(self.settings.openai_api_key and OpenAI)
@@ -27,6 +28,7 @@ class LLMService:
 
     def interpret_intent(self, text: str, context: list[str]) -> dict | None:
         if not self.is_configured():
+            self._last_error = "OpenAI client is not configured."
             return None
         prompt = (
             "Return compact JSON with keys intent, target, value, confidence, reply_hint. "
@@ -42,13 +44,16 @@ class LLMService:
                 ],
             )
             content = getattr(response, "output_text", "").strip()
+            self._last_error = None
             return json.loads(content) if content else None
         except Exception as exc:  # pragma: no cover
-            self.logger.warning("LLM intent interpretation failed: %s", exc)
+            self._last_error = self._format_exception(exc)
+            self.logger.warning("LLM intent interpretation failed: %s", self._last_error)
             return None
 
     def chat_reply(self, text: str, context: list[str], assistant_name: str) -> str | None:
         if not self.is_configured():
+            self._last_error = "OpenAI client is not configured."
             return None
         try:
             response = self._client().responses.create(
@@ -61,7 +66,18 @@ class LLMService:
                     {"role": "user", "content": json.dumps({"context": context[-10:], "message": text})},
                 ],
             )
+            self._last_error = None
             return getattr(response, "output_text", "").strip() or None
         except Exception as exc:  # pragma: no cover
-            self.logger.warning("LLM chat reply failed: %s", exc)
+            self._last_error = self._format_exception(exc)
+            self.logger.warning("LLM chat reply failed: %s", self._last_error)
             return None
+
+    def last_error(self) -> str | None:
+        return self._last_error
+
+    def _format_exception(self, exc: Exception) -> str:
+        message = str(exc).strip()
+        if message:
+            return message
+        return exc.__class__.__name__
