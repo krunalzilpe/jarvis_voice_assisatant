@@ -1,0 +1,98 @@
+Available microphones:
+Device 0: Microsoft Sound Mapper - Input
+Device 1: Microphone Array (Realtek(R) Au
+Device 2: Microphone (DroidCam Virtual Au
+Device 3: Microsoft Sound Mapper - Output
+Device 4: Speakers (Realtek(R) Audio)
+Device 5: Primary Sound Capture Driver
+Device 6: Microphone Array (Realtek(R) Audio)
+Device 7: Microphone (DroidCam Virtual Audio)
+Device 8: Primary Sound Driver
+Device 9: Speakers (Realtek(R) Audio)
+Device 10: Speakers (Realtek(R) Audio)
+Device 11: Microphone (DroidCam Virtual Audio)
+Device 12: Microphone Array (Realtek(R) Audio)
+Device 13: Microphone Array (Realtek HD Audio Mic Array input)
+Device 14: Speakers 1 (Realtek HD Audio output with SST)
+Device 15: Speakers 2 (Realtek HD Audio output with SST)
+Device 16: PC Speaker (Realtek HD Audio output with SST)
+Device 17: Stereo Mix (Realtek HD Audio Stereo input)
+Device 18: Microphone (Realtek HD Audio Mic input)
+Device 19: Headphones 1 (Realtek HD Audio 2nd output with SST)
+Device 20: Headphones 2 (Realtek HD Audio 2nd output with SST)
+Device 21: PC Speaker (Realtek HD Audio 2nd output with SST)
+Device 22: Headphones ()
+Device 23: MIDI (DroidCam Audio)
+Device 24: Output (DroidCam Audio)
+Device 25: Headphones ()
+Device 26: Headphones ()
+Device 27: Headphones ()
+Device 28: Headphones ()
+Device 29: Headphones ()
+Device 30: Headphones ()
+
+Testing which microphone works...
+[SUCCESS] Device 0 ('Microsoft Sound Mapper - Input') initialized successfully!
+[FAILED] Device 0 ('Microsoft Sound Mapper - Input'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 1 ('Microphone Array (Realtek(R) Au') initialized successfully!
+[FAILED] Device 1 ('Microphone Array (Realtek(R) Au'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 2 ('Microphone (DroidCam Virtual Au') initialized successfully!
+[FAILED] Device 2 ('Microphone (DroidCam Virtual Au'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 3 ('Microsoft Sound Mapper - Output') initialized successfully!
+[FAILED] Device 3 ('Microsoft Sound Mapper - Output'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 4 ('Speakers (Realtek(R) Audio)') initialized successfully!
+[FAILED] Device 4 ('Speakers (Realtek(R) Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 5 ('Primary Sound Capture Driver') initialized successfully!
+[FAILED] Device 5 ('Primary Sound Capture Driver'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 6 ('Microphone Array (Realtek(R) Audio)') initialized successfully!
+[FAILED] Device 6 ('Microphone Array (Realtek(R) Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 7 ('Microphone (DroidCam Virtual Audio)') initialized successfully!
+[FAILED] Device 7 ('Microphone (DroidCam Virtual Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 8 ('Primary Sound Driver') initialized successfully!
+[FAILED] Device 8 ('Primary Sound Driver'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 9 ('Speakers (Realtek(R) Audio)') initialized successfully!
+[FAILED] Device 9 ('Speakers (Realtek(R) Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 10 ('Speakers (Realtek(R) Audio)') initialized successfully!
+[FAILED] Device 10 ('Speakers (Realtek(R) Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 11 ('Microphone (DroidCam Virtual Audio)') initialized successfully!
+[FAILED] Device 11 ('Microphone (DroidCam Virtual Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 12 ('Microphone Array (Realtek(R) Audio)') initialized successfully!
+[FAILED] Device 12 ('Microphone Array (Realtek(R) Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 13 ('Microphone Array (Realtek HD Audio Mic Array input)') initialized successfully!
+[FAILED] Device 13 ('Microphone Array (Realtek HD Audio Mic Array input)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 14 ('Speakers 1 (Realtek HD Audio output with SST)') initialized successfully!
+[FAILED] Device 14 ('Speakers 1 (Realtek HD Audio output with SST)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 15 ('Speakers 2 (Realtek HD Audio output with SST)') initialized successfully!
+[FAILED] Device 15 ('Speakers 2 (Realtek HD Audio output with SST)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 16 ('PC Speaker (Realtek HD Audio output with SST)') initialized successfully!
+[FAILED] Device 16 ('PC Speaker (Realtek HD Audio output with SST)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 17 ('Stereo Mix (Realtek HD Audio Stereo input)') initialized successfully!
+[FAILED] Device 17 ('Stereo Mix (Realtek HD Audio Stereo input)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 18 ('Microphone (Realtek HD Audio Mic input)') initialized successfully!
+[FAILED] Device 18 ('Microphone (Realtek HD Audio Mic input)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 19 ('Headphones 1 (Realtek HD Audio 2nd output with SST)') initialized successfully!
+[FAILED] Device 19 ('Headphones 1 (Realtek HD Audio 2nd output with SST)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 20 ('Headphones 2 (Realtek HD Audio 2nd output with SST)') initialized successfully!
+[FAILED] Device 20 ('Headphones 2 (Realtek HD Audio 2nd output with SST)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 21 ('PC Speaker (Realtek HD Audio 2nd output with SST)') initialized successfully!
+[FAILED] Device 21 ('PC Speaker (Realtek HD Audio 2nd output with SST)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 22 ('Headphones ()') initialized successfully!
+[FAILED] Device 22 ('Headphones ()'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 23 ('MIDI (DroidCam Audio)') initialized successfully!
+[FAILED] Device 23 ('MIDI (DroidCam Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 24 ('Output (DroidCam Audio)') initialized successfully!
+[FAILED] Device 24 ('Output (DroidCam Audio)'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 25 ('Headphones ()') initialized successfully!
+[FAILED] Device 25 ('Headphones ()'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 26 ('Headphones ()') initialized successfully!
+[FAILED] Device 26 ('Headphones ()'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 27 ('Headphones ()') initialized successfully!
+[FAILED] Device 27 ('Headphones ()'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 28 ('Headphones ()') initialized successfully!
+[FAILED] Device 28 ('Headphones ()'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 29 ('Headphones ()') initialized successfully!
+[FAILED] Device 29 ('Headphones ()'): 'NoneType' object has no attribute 'close'
+[SUCCESS] Device 30 ('Headphones ()') initialized successfully!
+[FAILED] Device 30 ('Headphones ()'): 'NoneType' object has no attribute 'close'
+
+Result: We can fix jarvis.py by setting device_index=30

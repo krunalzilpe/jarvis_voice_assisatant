@@ -1,0 +1,27 @@
+Welcome back, sir!
+Good evening!
+Jarvis at your service. Please tell me how may I assist you.
+Listening...
+Traceback (most recent call last):
+  File "C:\Users\KRUNAL\Downloads\Jarvis-Desktop-Voice-Assistant-main\Jarvis-Desktop-Voice-Assistant-main\Jarvis\jarvis.py", line 78, in takecommand
+    audio = r.listen(source, timeout=5)  # Listen with a timeout
+  File "C:\Users\KRUNAL\Downloads\Jarvis-Desktop-Voice-Assistant-main\.venv\Lib\site-packages\speech_recognition\__init__.py", line 462, in listen
+    for a in result:
+             ^^^^^^
+  File "C:\Users\KRUNAL\Downloads\Jarvis-Desktop-Voice-Assistant-main\.venv\Lib\site-packages\speech_recognition\__init__.py", line 468, in _listen
+    assert source.stream is not None, "Audio source must be entered before listening, see documentation for ``AudioSource``; are you using ``source`` outside of a ``with`` statement?"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Audio source must be entered before listening, see documentation for ``AudioSource``; are you using ``source`` outside of a ``with`` statement?
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\KRUNAL\Downloads\Jarvis-Desktop-Voice-Assistant-main\Jarvis-Desktop-Voice-Assistant-main\Jarvis\jarvis.py", line 153, in <module>
+    query = takecommand()
+  File "C:\Users\KRUNAL\Downloads\Jarvis-Desktop-Voice-Assistant-main\Jarvis-Desktop-Voice-Assistant-main\Jarvis\jarvis.py", line 73, in takecommand
+    with sr.Microphone() as source:
+         ~~~~~~~~~~~~~^^
+  File "C:\Users\KRUNAL\Downloads\Jarvis-Desktop-Voice-Assistant-main\.venv\Lib\site-packages\speech_recognition\__init__.py", line 183, in __exit__
+    self.stream.close()
+    ^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'close'
