@@ -1,0 +1,9 @@
+.venv
+/.idea
+/data
+/logs
+*.db
+*.log
+__pycache__/
+Jarvis/README.md
+.env
